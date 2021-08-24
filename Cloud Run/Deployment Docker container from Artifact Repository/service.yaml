@@ -1,0 +1,61 @@
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/launch-stage: BETA
+  generation: 4
+  labels:
+    cloud.googleapis.com/location: $REGION
+    env: $NODE_ENV
+  name: $SERVICE_NAME
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: '$minScale'
+        autoscaling.knative.dev/maxScale: '$maxScale'
+        run.googleapis.com/vpc-access-egress: private-ranges-only
+        #For SQL instances
+        run.googleapis.com/cloudsql-instances: $DB_NAME
+        run.googleapis.com/sandbox: gvisor
+        #For VPC connections
+        run.googleapis.com/vpc-access-connector: $VPC_ACCESS_CONNECTOR
+    spec:
+      containerConcurrency: $containerConcurrency
+      containers:
+        - env:
+            #Here the env vars with the following format
+            #- name: NODE_ENV
+            #  value: $NODE_ENV           
+          image: $IMAGE          
+          ports:
+            - containerPort: 8080
+              name: http1
+          resources:
+            limits:
+              cpu: $CPU
+              memory: $MEMORY
+
+          # livenessProbe:
+          #   initialDelaySeconds: 30
+          #   timeoutSeconds: 30
+          #   periodSeconds: 10
+          #   successThreshold: 3
+          #   failureThreshold: 2
+          #   httpGet:
+          #     path: '/liveness'
+          # readinessProbe:
+          #   initialDelaySeconds: 30
+          #   timeoutSeconds: 30
+          #   periodSeconds: 10
+          #   successThreshold: 3
+          #   failureThreshold: 2
+          #   httpGet:
+          #     path: '/readiness'
+      timeoutSeconds: 300
+  traffic:
+    - latestRevision: true
+      percent: 100
