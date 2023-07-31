@@ -1,2 +1,15 @@
+#For more information see: https://cloud.google.com/appengine/docs/flexible/reference/app-yaml
+
 runtime: nodejs14
 service: $SERVICE_NAME
+service_account: $SERVICE_ACCOUNT
+
+# This handlers works for static files.
+handlers:
+- url: /(.+\.(js|css|png|jpg|gif|svg|ico|json))$
+  static_files: build/\1
+  upload: build/.*\.(js|css|png|jpg|gif|svg|ico|json)$
+
+- url: /(.+)
+  static_files: build/index.html
+  upload: build/index.html
